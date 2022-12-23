@@ -1,5 +1,5 @@
 import { BadRequestException, PipeTransform } from '@nestjs/common';
-import { BoardStatus } from '../board-status.enum';
+import { BoardStatus } from '@prisma/client';
 
 export class BoardStatusValidationPipe implements PipeTransform {
   readonly allowedStatuses = [BoardStatus.PRIVATE, BoardStatus.PUBLIC];
