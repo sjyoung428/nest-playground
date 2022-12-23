@@ -1,45 +1,56 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BoardStatus } from './board-status.enum';
-import { v1 as uuid } from 'uuid';
 import { CreateBoardDto } from './dto/create-boards.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Board, BoardStatus } from '@prisma/client';
 @Injectable()
 export class BoardsService {
   constructor(private prisma: PrismaService) {}
 
-  // getAllBoards(): Board[] {
-  //   return this.boards;
-  // }
+  async getAllBoards(): Promise<Board[]> {
+    return await this.prisma.board.findMany();
+  }
 
-  // createBoard(createBoardDto: CreateBoardDto): Board {
-  //   const { title, description } = createBoardDto;
-  //   const board: Board = {
-  //     id: uuid(),
-  //     title,
-  //     description,
-  //     status: BoardStatus.PUBLIC,
-  //   };
+  async createBoard(createBoardDto: CreateBoardDto) {
+    const { title, description } = createBoardDto;
+    return await this.prisma.board.create({
+      data: {
+        title,
+        description,
+        status: BoardStatus.PUBLIC,
+      },
+    });
+  }
 
-  //   this.boards.push(board);
-  //   return board;
-  // }
+  async getBoardById(id: string) {
+    const found = await this.prisma.board.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!found) {
+      throw new NotFoundException(`Can't find Board with id ${id}`);
+    }
+    return found;
+  }
 
-  // getBoardById(id: string): Board {
-  //   const found = this.boards.find((board) => board.id === id);
-  //   if (!found) {
-  //     throw new NotFoundException(`Can't find Board with id ${id}`);
-  //   }
-  //   return found;
-  // }
+  async deleteBoard(id: string) {
+    const found = await this.getBoardById(id);
+    return await this.prisma.board.delete({
+      where: {
+        id: found.id,
+      },
+    });
+  }
 
-  // deleteBoard(id: string): void {
-  //   const found = this.getBoardById(id);
-  //   this.boards = this.boards.filter((board) => board.id !== found.id);
-  // }
-
-  // updateBoardStatus(id: string, status: BoardStatus): Board {
-  //   const board = this.getBoardById(id);
-  //   board.status = status;
-  //   return board;
-  // }
+  async updateBoardStatus(id: string, status: BoardStatus) {
+    const board = await this.getBoardById(id);
+    return await this.prisma.board.update({
+      where: {
+        id: board.id,
+      },
+      data: {
+        status,
+      },
+    });
+  }
 }
