@@ -21,3 +21,9 @@ enum BoardStatus {
   PUBLIC
   PRIVATE
 }
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String
+  password String
+}
