@@ -7,10 +7,11 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthCredentialDto } from './dto/auth-credential.dto';
 import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
   async signUp(authCredentialDto: AuthCredentialDto): Promise<void> {
     const { username, password } = authCredentialDto;
@@ -35,7 +36,9 @@ export class AuthService {
     }
   }
 
-  async signIn(authCredentialDto: AuthCredentialDto): Promise<string> {
+  async signIn(
+    authCredentialDto: AuthCredentialDto,
+  ): Promise<{ accessToken: string }> {
     const { username, password } = authCredentialDto;
     const user = await this.prisma.user.findUnique({
       where: {
@@ -44,7 +47,10 @@ export class AuthService {
     });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      return 'login Success';
+      const payload = { username };
+      const accessToken = await this.jwtService.sign(payload);
+
+      return { accessToken };
     } else {
       throw new UnauthorizedException('login Failed');
     }

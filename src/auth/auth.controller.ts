@@ -14,7 +14,9 @@ export class AuthController {
   }
 
   @Post('/signin')
-  signIn(@Body() authcredentialDto: AuthCredentialDto): Promise<string> {
+  signIn(
+    @Body() authcredentialDto: AuthCredentialDto,
+  ): Promise<{ accessToken: string }> {
     return this.authService.signIn(authcredentialDto);
   }
 }
