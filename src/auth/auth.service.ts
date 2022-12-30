@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthCredentialDto } from './dto/auth-credential.dto';
@@ -31,6 +32,21 @@ export class AuthService {
       } else {
         throw new InternalServerErrorException();
       }
+    }
+  }
+
+  async signIn(authCredentialDto: AuthCredentialDto): Promise<string> {
+    const { username, password } = authCredentialDto;
+    const user = await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      return 'login Success';
+    } else {
+      throw new UnauthorizedException('login Failed');
     }
   }
 }
